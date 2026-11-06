@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReplyLab</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="mark" aria-hidden="true">↳</span><span>ReplyLab</span></div>
+    <span class="top-caption">Conversation experiments</span>
+    <span id="connection" class="connection">Local workspace</span>
+  </header>
+
+  <div class="workspace">
+    <aside>
+      <button id="new-session" class="primary new">+ New session</button>
+      <label class="section-label" for="sessions">Session</label>
+      <select id="sessions"><option value="">Choose a session</option></select>
+      <div class="section-label">Branches</div>
+      <nav id="branches" aria-label="Branches"></nav>
+      <button id="fork-start" class="quiet" hidden>↳ Replay from start</button>
+    </aside>
+
+    <main>
+      <p id="error" class="error" role="alert" hidden></p>
+      <section id="empty" class="empty">
+        <p class="section-label">Local experiment harness</p>
+        <h1>Take a conversation<br>in a different direction.</h1>
+        <p>Start a chat with two humans, two models, or one of each. Replay it from a turn or a point inside a message.</p>
+        <button id="empty-create" class="primary">Create a session</button>
+      </section>
+      <section id="chat" hidden>
+        <header class="chat-header">
+          <div>
+            <p class="section-label">Transcript</p>
+            <h1 id="branch-title"></h1>
+            <p id="branch-source" class="muted"></p>
+          </div>
+          <div id="seats" class="seats"></div>
+        </header>
+        <div id="setup" class="setup" hidden></div>
+        <div id="turns" class="turns"></div>
+        <div id="draft" class="draft" hidden></div>
+        <section id="attempts" class="attempts" hidden>
+          <h2>Uncommitted attempts</h2>
+          <div id="attempt-list"></div>
+        </section>
+        <div class="controls">
+          <span id="status" role="status"></span>
+          <div class="run-buttons">
+            <button id="next">Next</button>
+            <label class="limit-label">Turns <input id="limit" type="number" value="10" required min="1" max="2147483647"></label>
+            <button id="play">Play</button>
+            <button id="stop" class="stop" disabled>Stop</button>
+          </div>
+        </div>
+        <form id="composer" class="composer" hidden>
+          <label id="compose-label" for="message"></label>
+          <textarea id="message" rows="3" placeholder="Write a message…" required></textarea>
+          <button class="primary" type="submit">Send</button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="create-dialog">
+    <form id="create-form">
+      <div class="dialog-heading"><h2>New session</h2><button class="quiet" type="button" data-close>Close</button></div>
+      <div id="seat-fields" class="seat-fields"></div>
+      <label>Starting seat
+        <select name="starter"><option>A</option><option>B</option></select>
+      </label>
+      <label>Opening prompt
+        <textarea name="prompt" rows="3" placeholder="Required when an AI opens"></textarea>
+      </label>
+      <p class="form-error" role="alert" hidden></p>
+      <button class="primary" type="submit">Create session</button>
+    </form>
+  </dialog>
+
+  <dialog id="fork-dialog">
+    <form id="fork-form">
+      <div class="dialog-heading"><h2 id="fork-title"></h2><button class="quiet" type="button" data-close>Close</button></div>
+      <p id="fork-help" class="muted"></p>
+      <label>Message text<textarea id="fork-text" rows="8"></textarea></label>
+      <p id="cursor" class="muted" aria-live="polite"></p>
+      <p class="form-error" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button type="button" id="replay-before">Before turn</button>
+        <button type="button" id="replay-after">After turn</button>
+        <button type="submit" class="primary" id="fork-confirm"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="attempt-dialog">
+    <div class="dialog-heading"><h2>Model attempt</h2><button class="quiet" type="button" data-close>Close</button></div>
+    <p id="attempt-status" class="muted"></p>
+    <h3>Output</h3><pre id="attempt-output"></pre>
+    <button id="fork-partial" hidden>↳ Replay from this partial</button>
+    <h3>Recorded request</h3><pre id="attempt-request"></pre>
+    <h3 id="metadata-heading" hidden>Provider metadata</h3><pre id="attempt-metadata" hidden></pre>
+  </dialog>
+
+  <template id="seat-template">
+    <fieldset>
+      <legend></legend>
+      <label>Controller
+        <select name="adapter"><option value="human">Human</option><option value="fake">Demo model</option><option value="openai">OpenAI</option></select>
+      </label>
+      <div class="model-fields" hidden>
+        <label>Model<input name="model"></label>
+        <label>Instructions<textarea name="instructions" rows="2"></textarea></label>
+        <label>Generation options (JSON)<input name="options" placeholder="{}"></label>
+      </div>
+    </fieldset>
+  </template>
+</body>
+</html>
