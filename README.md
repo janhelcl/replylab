@@ -41,3 +41,15 @@ Set `OPENAI_API_KEY` in the environment where you start the service. In the brow
 ```sh
 python -m unittest discover -s tests -v
 ```
+
+[GitHub Actions CI](https://github.com/janhelcl/replylab/actions/workflows/ci.yml) runs lint, the Python test matrix, and a Chromium smoke test on pull requests and pushes to `main`. The browser test installs the built wheel and exercises playback, stop, and replay across the browser and the installed CLI using the demo model.
+
+To run the browser check locally in a virtual environment:
+
+```sh
+python -m pip install build==1.6.1 playwright==1.64.1
+python -m build
+python -m pip install dist/*.whl
+python -m playwright install chromium
+python tests/browser_smoke.py
+```

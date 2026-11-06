@@ -4,6 +4,7 @@ import queue
 import threading
 import time
 from dataclasses import dataclass
+from functools import partial
 
 from .models import ADAPTERS, Cancellation, Invalid, Result, integer, make_request, normalize_seat, require_text
 from .store import Store, new_id, timestamp
@@ -294,8 +295,7 @@ class Lab:
                 self._emit(session_id, "attempt_started", branch_id=branch_id, run_id=run_id,
                            attempt_id=draft.attempt_id, seat=seat)
 
-            def delta(text):
-                return self._delta(session_id, branch_id, run_id, draft, text)
+            delta = partial(self._delta, session_id, branch_id, run_id, draft)
 
             try:
                 result = self.adapters[request["adapter"]](request, delta, cancellation)

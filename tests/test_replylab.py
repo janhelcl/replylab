@@ -8,6 +8,7 @@ import tempfile
 import threading
 import time
 import unittest
+from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
@@ -156,6 +157,26 @@ class LabTests(unittest.TestCase):
         self.assertNotEqual(new_run["id"], run["id"])
         self.assertEqual(self.lab.attempt(ids[0], attempt["id"])["text"], "Part 🦜 and more")
 
+    def test_late_delta_cannot_enter_the_next_autoplay_attempt(self):
+        earlier_callbacks = []
+        accepted = []
+
+        def adapter(request, delta, cancellation):
+            if not earlier_callbacks:
+                earlier_callbacks.append(delta)
+                delta("First")
+            else:
+                accepted.append(earlier_callbacks[0]("Late"))
+                delta("Second")
+            return Result("complete", "stop")
+
+        self.lab.adapters = {"fake": adapter}
+        ids = self.create(model(), model(), prompt="Seed")
+        self.lab.start(*ids, {"revision": 0, "limit": 2}, "play")
+        self.idle(ids[0])
+        self.assertEqual(accepted, [False])
+        self.assertEqual([turn["text"] for turn in self.lab.branch(*ids)["turns"]], ["First", "Second"])
+
     def test_concurrent_starts_and_provider_failure(self):
         release = threading.Event()
 
@@ -209,11 +230,10 @@ class PersistenceTests(unittest.TestCase):
             with self.assertRaisesRegex(OSError, "already open"):
                 Lab(path)
             lab.store.close()
-            reopened = Lab(path)
-            self.addCleanup(reopened.close)
-            self.assertIsNone(reopened.session(session)["run"])
-            self.assertEqual(reopened.branch(session, branch)["last_run"]["status"], "interrupted")
-            self.assertEqual(reopened.attempt(session, "attempt")["text"], "checkpoint")
+            with closing(Lab(path)) as reopened:
+                self.assertIsNone(reopened.session(session)["run"])
+                self.assertEqual(reopened.branch(session, branch)["last_run"]["status"], "interrupted")
+                self.assertEqual(reopened.attempt(session, "attempt")["text"], "checkpoint")
 
 
 def sse(*chunks):
